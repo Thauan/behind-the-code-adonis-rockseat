@@ -1,40 +1,41 @@
-'use strict'
+"use strict";
 
-const { randomBytes } = require('crypto');
-const { promisify } = require('util');
+const { randomBytes } = require("crypto");
+const { promisify } = require("util");
 
-const Mail = use('Mail');
-const Env = use('Env');
+const Mail = use("Mail");
+const Env = use("Env");
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
-const User = use('App/Models/User');
+const User = use("App/Models/User");
 
 class ForgotPasswordController {
   async store({ request }) {
-    const email = request.input('email');
+    const email = request.input("email");
 
-    const user = await User.findByOrFail('email', email);
+    const user = await User.findByOrFail("email", email);
 
     const random = await promisify(randomBytes)(16);
-    const token = random.toString('hex');
+    const token = random.toString("hex");
 
     await user.tokens().create({
       token,
-      type: 'forgotpassword',
-    })
+      type: "forgotpassword"
+    });
 
-    const resetPasswordUrl = `${Env.get('FRONT_URL')}/reset?token=${token}`;
+    const resetPasswordUrl = `${Env.get("FRONT_URL")}/reset?token=${token}`;
 
     await Mail.send(
-      'emails.forgotpassword',
-      {name: user.name, token, resetPasswordUrl },
-      (message) =>{
-      message
-      .to(user.email)
-      .from('contato@ferozdigital.com.br')
-      .subject('CodeNight - Recuperação de senha')
-    })
+      "emails.forgotpassword",
+      { name: user.name, resetPasswordUrl },
+      message => {
+        message
+          .to(user.email)
+          .from("contato@ferozdigital.com.br")
+          .subject("BehindOfCode - Recuperação de senha");
+      }
+    );
   }
 }
 
-module.exports = ForgotPasswordController
+module.exports = ForgotPasswordController;
